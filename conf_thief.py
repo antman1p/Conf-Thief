@@ -92,7 +92,7 @@ def main():
     access_token = ""
 
     # usage
-    usage = '\nusage: python3 conf_thief.py [-h] -u <Target Username> -p <API ACCESS TOKEN> -d <DICTIONARY FILE PATH>'
+    usage = '\nusage: python3 conf_thief.py [-h] -c <TARGET URL> -u <Target Username> -p <API ACCESS TOKEN> -d <DICTIONARY FILE PATH>'
 
     #help
     help = '\nThis Module will connect to Confluence\'s API using an access token, '
@@ -100,6 +100,9 @@ def main():
     help += 'It allows you to use a dictionary/keyword search file to search all files in the target\nConfluence for' 
     help += ' potentially sensitive data. It will output exfiltrated PDFs to the ./loot directory'
     help += '\n\narguments:'
+    help += '\n\t-c <TARGET CONFLUENCE URL>,'
+    help += '\n\t\t--url <TARGET CONFLUENCE URL>'
+    help += '\n\t\tThe URL of target Confluence account'
     help += '\n\t-u <TARGET CONFLUENCE ACCOUNT USERNAME>,'
     help += '\n\t\t--user <TARGET USERNAME>'
     help += '\n\t\tThe username of target Confluence account'
