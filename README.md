@@ -4,9 +4,12 @@ This Module will connect to Confluence's API using an access token, export to PD
 `pip install atlassian-python-api`
 ## Usage
 ```
-python3 conf_thief.py [-h] -u <Target Username> -p <API ACCESS TOKEN> -d <DICTIONARY FILE PATH>
+python3 conf_thief.py [-h] -c <TARGET URL> -u <Target Username> -p <API ACCESS TOKEN> -d <DICTIONARY FILE PATH>
 
 arguments:
+        -c <TARGET CONFLUENCE URL>,
+                --url <TARGET CONFLUENCE URL>
+                The URL of target Confluence account
         -u <TARGET CONFLUENCE ACCOUNT USERNAME>,
                 --user <TARGET USERNAME>
                 The username of target Confluence account
