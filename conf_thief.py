@@ -69,7 +69,7 @@ def searchKeyWords(path, username, access_token, cURL):
 
 def downloadContent(username, access_token, cURL):
     confluence = Confluence(
-        URL = cURL,
+        url = cURL,
         api_version = "cloud",
         username = username,
         password = access_token
