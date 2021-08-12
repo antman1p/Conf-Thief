@@ -77,13 +77,15 @@ def downloadContent(username, access_token, cURL):
     print('[*] Downloading files')
     count = 1
     for contentId in contentSet:
-        response = confluence.export_page(contentId)
-        path = 'loot/' + contentId + '.pdf'
-        with open(path, 'wb') as f:
-            f.write(response)
-        print('[*] Downloaded %i of %i files: %s.pdf]' % (count, len(contentSet), contentId))
-        count += 1
-
+        try:
+            response = confluence.export_page(contentId)
+            path = 'loot/' + contentId + '.pdf'
+            with open(path, 'wb') as f:
+                f.write(response)
+            print('[*] Downloaded %i of %i files: %s.pdf]' % (count, len(contentSet), contentId))
+            count += 1
+        except Exception as err:
+            print("Error : " + str(err))
 
 def main():
     cURL=""
