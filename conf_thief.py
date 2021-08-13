@@ -153,7 +153,10 @@ def main():
         print("\nConfluence URL  (-c, --url) is a mandatory argument\n")
         print(usage)
         sys.exit(2)
-
+        
+    # Strip trailing / from URL if it has one
+    if cURL.endswith('/'):
+        cURL = cURL[:-1]
 
     searchKeyWords(dict_path, username, access_token, cURL)
     downloadContent(username, access_token, cURL)
