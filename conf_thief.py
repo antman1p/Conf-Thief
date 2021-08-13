@@ -33,7 +33,6 @@ def searchKeyWords(path, username, access_token, cURL):
 
     print("[*] Searching for Confluence content for keywords and compiling a list of pages")
     for line in f:
-        fullURL = ""
         tempSetCount = len(contentSet)
         count = 0
         search_term = line.strip()
