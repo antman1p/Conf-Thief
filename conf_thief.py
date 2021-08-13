@@ -1,15 +1,12 @@
-import requests, json, sys, getopt
+import requests, json, sys, getopt, time
 
 # Set that holds all of the pages found in the keyword search
 contentSet = set()
 
-# for proxying through Burp using ENV variables
-proxies = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
-
 # Set these ENV Variables to proxy through burp:
 # export REQUESTS_CA_BUNDLE='/path/to/pem/encoded/cert'
 # export HTTP_PROXY="http://127.0.0.1:8080"
-# export HTTPS_PROXY="https://127.0.0.1:8080"
+# export HTTPS_PROXY="http://127.0.0.1:8080"
 
 default_headers = {
     'Accept': 'application/json',
@@ -90,8 +87,9 @@ def downloadContent(username, access_token, cURL):
     print('[*] Downloading files')
     count = 1
     for contentId in contentSet:
-            url = cURL + "/spaces/flyingpdf/pdfpageexport.action?pageId={pageId}".format(pageId=contentId)
+            url = cURL + "/wiki/spaces/flyingpdf/pdfpageexport.action?pageId={pageId}".format(pageId=contentId)
             url = get_pdf_download_url_for_confluence_cloud(cURL, url, username, access_token)
+            url = cURL + "/wiki/" + url
             try:
                 response = requests.request("GET",
                     url,
@@ -99,8 +97,9 @@ def downloadContent(username, access_token, cURL):
                     headers=headers
                 )
                 path = 'loot/' + contentId + '.pdf'
+                #print(str(response.content, errors="strict"))
                 with open(path, 'wb') as f:
-                    f.write(response)
+                    f.write(response.content)
                 print('[*] Downloaded %i of %i files: %s.pdf]' % (count, len(contentSet), contentId))
                 count += 1
             except Exception as err:
@@ -120,18 +119,15 @@ def get_pdf_download_url_for_confluence_cloud(cURL, url, username, access_token)
     try:
         long_running_task = True
         headers = form_token_headers
-        print("Initiate PDF export from Confluence Cloud")
+        print("Initiating PDF export from Confluence Cloud")
         response = requests.request("GET",
             url,
             auth=(username, access_token),
             headers=headers
         )
-        print("DEBUG: url = " + url)
         response_string = response.content.decode(encoding="utf-8", errors="strict")
-        print("DEBUG: response_string = " + response_string)
         task_id = response_string.split('name="ajs-taskId" content="')[1].split('">')[0]
-        print("DEBUG: task_id = " + task_id)
-        poll_url = cURL + "/runningtaskxml.action?taskId={0}".format(task_id)
+        poll_url = cURL + "/wiki/runningtaskxml.action?taskId={0}".format(task_id)
         while long_running_task:
             long_running_task_response = requests.request("GET",
                 url=poll_url,
@@ -145,7 +141,7 @@ def get_pdf_download_url_for_confluence_cloud(cURL, url, username, access_token)
             is_successful = long_running_task_response_parts[7].strip()
             is_complete = long_running_task_response_parts[8].strip()
             time.sleep(5)
-            print("Check if export task has completed.")
+            print("Checking if export task has completed...")
             if is_complete == "<isComplete>true</isComplete>":
                 if is_successful == "<isSuccessful>true</isSuccessful>":
                     print("PDF Export Percentage Complete: " + percentage_complete)
@@ -154,7 +150,7 @@ def get_pdf_download_url_for_confluence_cloud(cURL, url, username, access_token)
                     download_url = current_status.split("href=&quot;/wiki/")[1].split("&quot")[0]
                     long_running_task = False
                 elif is_successful == "<isSuccessful>false</isSuccessful>":
-                    log.error("PDF conversion not successful.")
+                    print("PDF conversion not successful.")
                     return None
             else:
                 print("PDF Export Percentage Complete: " + percentage_complete)
