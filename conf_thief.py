@@ -119,7 +119,7 @@ def get_pdf_download_url_for_confluence_cloud(cURL, url, username, access_token)
     try:
         long_running_task = True
         headers = form_token_headers
-        print("[*] Initiating PDF export from Confluence Cloud")
+        #print("[*] Initiating PDF export from Confluence Cloud")
         response = requests.request("GET",
             url,
             auth=(username, access_token),
@@ -140,20 +140,20 @@ def get_pdf_download_url_for_confluence_cloud(cURL, url, username, access_token)
             percentage_complete = long_running_task_response_parts[6].strip().split("<percentComplete>")[1].split("</")[0]
             is_successful = long_running_task_response_parts[7].strip()
             is_complete = long_running_task_response_parts[8].strip()
-            time.sleep(5)
-            print("[*] Checking if export task has completed...")
+            #time.sleep(5)
+            #print("[*] Checking if export task has completed...")
             if is_complete == "<isComplete>true</isComplete>":
                 if is_successful == "<isSuccessful>true</isSuccessful>":
-                    print("[*] " + percentage_complete + "% complete...")
-                    print("[*] Extracting taskId from PDF.")
+                    #print("[*] " + percentage_complete + "% complete...")
+                    #print("[*] Extracting taskId from PDF.")
                     current_status = long_running_task_response_parts[3]
                     download_url = current_status.split("href=&quot;/wiki/")[1].split("&quot")[0]
                     long_running_task = False
                 elif is_successful == "<isSuccessful>false</isSuccessful>":
                     print("[*] PDF conversion NOT successful.")
                     return None
-            else:
-                print("[*] " + percentage_complete + "% complete...")
+            #else:
+                #print("[*] " + percentage_complete + "% complete...")
     except Exception as err:
         print("Error: " + str(err))
         return None
