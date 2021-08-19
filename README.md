@@ -31,5 +31,5 @@ optional arguments:
 ## TODO
 - Threading
 - Logging
-- Use actual pdf file names
+- ~~Use actual pdf file names~~
 - Map keyword searches to downloaded files

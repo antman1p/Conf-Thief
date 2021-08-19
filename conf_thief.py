@@ -67,13 +67,20 @@ def searchKeyWords(path, username, access_token, cURL):
             jsonResp = json.loads(response.text)
             for results in jsonResp['results']:
                 pageId = ""
+                id_and_name = ""
                 contentId = results['content']['id']
                 pageId_url = results['url']
+                page_name = results['content']['title']
+                # Some results will have a pageId and some only a contentId.
+                # Need pageId if it exists, otherwise use contentId
                 if "pageId=" in pageId_url:
                     pageId = pageId_url.split('pageId=')[1].split('&')[0]
-                    contentSet.add(pageId)
+                    id_and_name = pageId + "," + page_name
+                    contentSet.add(id_and_name)
                 else:
-                    contentSet.add(contentId)
+                    id_and_name = contentId + "," + page_name
+                    contentSet.add(id_and_name)
+
             if len(contentSet) > tempSetCount:
                 count = len(contentSet) - tempSetCount
                 tempSetCount = len(contentSet)
@@ -87,8 +94,10 @@ def downloadContent(username, access_token, cURL):
     headers = form_token_headers
     print('[*] Downloading files')
     count = 1
+    set_length = len(contentSet)
     for contentId in contentSet:
-            url = cURL + "/wiki/spaces/flyingpdf/pdfpageexport.action?pageId={pageId}".format(pageId=contentId)
+            page = contentId.split(",", 1)
+            url = cURL + "/wiki/spaces/flyingpdf/pdfpageexport.action?pageId={pageId}".format(pageId=page[0])
             url = get_pdf_download_url_for_confluence_cloud(cURL, url, username, access_token)
             url = cURL + "/wiki/" + url
             try:
@@ -97,10 +106,11 @@ def downloadContent(username, access_token, cURL):
                     auth=(username, access_token),
                     headers=headers
                 )
-                path = 'loot/' + contentId + '.pdf'
+
+                path = "loot/{file_name}-{pageId}.pdf".format(file_name=page[1], pageId=page[0])
                 with open(path, 'wb') as f:
                     f.write(response.content)
-                print('[*] Downloaded %i of %i files: %s.pdf]' % (count, len(contentSet), contentId))
+                print('[*] Downloaded %i of %i files: %s-%s.pdf' % (count, set_length, page[1], page[0]))
                 count += 1
             except Exception as err:
                 print("Error : " + str(err))
