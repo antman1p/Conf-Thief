@@ -35,7 +35,7 @@ def getNumberOfPages(query, username, access_token, cURL):
 
 def searchKeyWords(path, username, access_token, cURL):
     search_term = " "
-    q = '/wiki/rest/api/search?start=1&limit=250'
+
     try:
         f = open(path, "r")
     except Exception as e:
@@ -47,39 +47,42 @@ def searchKeyWords(path, username, access_token, cURL):
         tempSetCount = len(contentSet)
         count = 0
         search_term = line.strip()
-        query = {
+        searchQuery = {
             'cql': '{text~\"' + search_term + '\"}'
         }
-        totalSize = getNumberOfPages(query, username, access_token, cURL)
+        totalSize = getNumberOfPages(searchQuery, username, access_token, cURL)
         if totalSize:
-            URL = cURL + q
-            searchQuery = {
-                'cql': '{text~\"' + search_term + '\"'
-            }
+            print("[*] Setting {total} results for search term: {term}".format(total=totalSize, term=search_term))
+            start_point = 1
+            while start_point < totalSize:
+                print("[*] Setting {startpoint} of {total} results for search term: {term}".format(startpoint=start_point, total=totalSize, term=search_term))
+                q = "/wiki/rest/api/search?start={startpoint}&limit=250".format(startpoint=start_point)
+                URL = cURL + q
 
-            response = requests.request("GET",
-                URL,
-                auth=(username, access_token),
-                headers=default_headers,
-                params=searchQuery
-            )
+                response = requests.request("GET",
+                    URL,
+                    auth=(username, access_token),
+                    headers=default_headers,
+                    params=searchQuery
+                )
 
-            jsonResp = json.loads(response.text)
-            for results in jsonResp['results']:
-                pageId = ""
-                id_and_name = ""
-                contentId = results['content']['id']
-                pageId_url = results['url']
-                page_name = results['content']['title']
-                # Some results will have a pageId and some only a contentId.
-                # Need pageId if it exists, otherwise use contentId
-                if "pageId=" in pageId_url:
-                    pageId = pageId_url.split('pageId=')[1].split('&')[0]
-                    id_and_name = pageId + "," + page_name
-                    contentSet.add(id_and_name)
-                else:
-                    id_and_name = contentId + "," + page_name
-                    contentSet.add(id_and_name)
+                jsonResp = json.loads(response.text)
+                for results in jsonResp['results']:
+                    pageId = ""
+                    id_and_name = ""
+                    contentId = results['content']['id']
+                    pageId_url = results['url']
+                    page_name = results['content']['title']
+                    # Some results will have a pageId and some only a contentId.
+                    # Need pageId if it exists, otherwise use contentId
+                    if "pageId=" in pageId_url:
+                        pageId = pageId_url.split('pageId=')[1].split('&')[0]
+                        id_and_name = pageId + "," + page_name
+                        contentSet.add(id_and_name)
+                    else:
+                        id_and_name = contentId + "," + page_name
+                        contentSet.add(id_and_name)
+                start_point += 250
 
             if len(contentSet) > tempSetCount:
                 count = len(contentSet) - tempSetCount
@@ -96,24 +99,24 @@ def downloadContent(username, access_token, cURL):
     count = 1
     set_length = len(contentSet)
     for contentId in contentSet:
-            page = contentId.split(",", 1)
-            url = cURL + "/wiki/spaces/flyingpdf/pdfpageexport.action?pageId={pageId}".format(pageId=page[0])
-            url = get_pdf_download_url_for_confluence_cloud(cURL, url, username, access_token)
-            url = cURL + "/wiki/" + url
-            try:
-                response = requests.request("GET",
-                    url,
-                    auth=(username, access_token),
-                    headers=headers
-                )
+        page = contentId.split(",", 1)
+        url = cURL + "/wiki/spaces/flyingpdf/pdfpageexport.action?pageId={pageId}".format(pageId=page[0])
+        url = get_pdf_download_url_for_confluence_cloud(cURL, url, username, access_token)
+        url = cURL + "/wiki/" + url
+        try:
+            response = requests.request("GET",
+                url,
+                auth=(username, access_token),
+                headers=headers
+            )
 
-                path = "loot/{file_name}-{pageId}.pdf".format(file_name=page[1], pageId=page[0])
-                with open(path, 'wb') as f:
-                    f.write(response.content)
-                print('[*] Downloaded %i of %i files: %s-%s.pdf' % (count, set_length, page[1], page[0]))
-                count += 1
-            except Exception as err:
-                print("Error : " + str(err))
+            path = "loot/{file_name}-{pageId}.pdf".format(file_name=page[1], pageId=page[0])
+            with open(path, 'wb') as f:
+                f.write(response.content)
+            print('[*] Downloaded %i of %i files: %s-%s.pdf' % (count, set_length, page[1], page[0]))
+            count += 1
+        except Exception as err:
+            print("Error : " + str(err))
 
 def get_pdf_download_url_for_confluence_cloud(cURL, url, username, access_token):
     """
