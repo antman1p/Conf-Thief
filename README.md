@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="static/conf-thief.png" alt="conf-thief" width="200px"></a>
+  <img src="static/conf-thief.png" alt="conf-thief" width="400px"></a>
   <br>
 </h1>
 <p align="center">
