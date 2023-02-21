@@ -99,24 +99,30 @@ def downloadContent(username, access_token, cURL, output_dir):
     count = 1
     set_length = len(contentSet)
     for contentId in contentSet:
-        page = contentId.split(",", 1)
-        url = cURL + "/wiki/spaces/flyingpdf/pdfpageexport.action?pageId={pageId}".format(pageId=page[0])
-        url = get_pdf_download_url_for_confluence_cloud(cURL, url, username, access_token)
-        url = cURL + "/wiki/" + url
         try:
-            response = requests.request("GET",
-                url,
-                auth=(username, access_token),
-                headers=headers
-            )
+            page = contentId.split(",", 1)
+            url = cURL + "/wiki/spaces/flyingpdf/pdfpageexport.action?pageId={pageId}".format(pageId=page[0])
+            url = get_pdf_download_url_for_confluence_cloud(cURL, url, username, access_token)
+            if url is not None:
+                url = cURL + "/wiki/" + url
+        
+                response = requests.request("GET",
+                    url,
+                    auth=(username, access_token),
+                    headers=headers
+                )
 
-            path = "{OUTDIR}/{file_name}-{pageId}.pdf".format(OUTDIR=output_dir, file_name=page[1], pageId=page[0])
-            with open(path, 'wb') as f:
-                f.write(response.content)
-            print('[*] Downloaded %i of %i files: %s-%s.pdf' % (count, set_length, page[1], page[0]))
-            count += 1
+                path = "{OUTDIR}/{file_name}-{pageId}.pdf".format(OUTDIR=output_dir, file_name=page[1], pageId=page[0])
+                with open(path, 'wb') as f:
+                    f.write(response.content)
+                print('[*] Downloaded %i of %i files: %s-%s.pdf' % (count, set_length, page[1], page[0]))
+                count += 1
+            else:
+                print("[*] Error getting PDF url.")
+                count += 1
         except Exception as err:
             print("Error : " + str(err))
+            count += 1
 
 def get_pdf_download_url_for_confluence_cloud(cURL, url, username, access_token):
     """
